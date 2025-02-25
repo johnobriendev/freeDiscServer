@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './types';
+import authRoutes from './routes/auth';
 
 // Initialize Express app
 const app = express();
@@ -27,7 +28,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 // Routes will be added here later
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Error handler
 app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
