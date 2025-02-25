@@ -1,0 +1,97 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  passwordHash   String
+  firstName      String?
+  lastName       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  ownedCourses   Course[]
+  ownedRounds    Round[]  @relation("RoundOwner")
+  participatingRounds Round[] @relation("RoundParticipant")
+  playerProfiles Player[]
+}
+
+model Course {
+  id             String   @id @default(uuid())
+  name           String
+  location       String?
+  description    String?
+  holeCount      Int      @default(18)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ownerId        String
+  
+  // Relations
+  owner          User     @relation(fields: [ownerId], references: [id])
+  holes          Hole[]
+  rounds         Round[]
+}
+
+model Hole {
+  id             String   @id @default(uuid())
+  holeNumber     Int
+  par            Int      @default(4)
+  lengthYards    Int?
+  courseId       String
+  
+  // Relations
+  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  scores         Score[]
+  
+  @@unique([courseId, holeNumber])
+}
+
+model Round {
+  id             String   @id @default(uuid())
+  date           DateTime @default(now())
+  status         String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, CANCELED
+  ownerId        String
+  courseId       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  owner          User     @relation("RoundOwner", fields: [ownerId], references: [id])
+  course         Course   @relation(fields: [courseId], references: [id])
+  players        Player[]
+  participants   User[]   @relation("RoundParticipant")
+}
+
+model Player {
+  id             String   @id @default(uuid())
+  name           String
+  roundId        String
+  userId         String?
+  
+  // Relations
+  round          Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  user           User?    @relation(fields: [userId], references: [id])
+  scores         Score[]
+}
+
+model Score {
+  id             String   @id @default(uuid())
+  strokes        Int
+  playerId       String
+  holeId         String
+  
+  // Relations
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  hole           Hole     @relation(fields: [holeId], references: [id])
+  
+  @@unique([playerId, holeId])
+}
