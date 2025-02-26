@@ -2,9 +2,9 @@
 
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions }  from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/auth';
-import { RegisterRequest, LoginRequest, RequestWithPrisma } from '../types';
+import { RegisterRequest, LoginRequest, RequestWithPrisma, JwtPayload } from '../types';
 
 export const register = async (
   req: Request, 
@@ -13,7 +13,7 @@ export const register = async (
 ) => {
   try {
     const { email, password, firstName, lastName }: RegisterRequest = req.body;
-    const prisma = (req as RequestWithPrisma).prisma;
+    const prisma = (req as any).prisma;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -38,12 +38,14 @@ export const register = async (
       }
     });
 
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    // Define payload and options with explicit types
+    const tokenPayload: JwtPayload = { id: user.id, email: user.email };
+    const signOptions: SignOptions = { expiresIn: JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] };
+
+    // Generate JWT with properly typed variables
+    const token = jwt.sign(tokenPayload, JWT_SECRET, signOptions);
+
+    
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -67,7 +69,7 @@ export const login = async (
 ) => {
   try {
     const { email, password }: LoginRequest = req.body;
-    const prisma = (req as RequestWithPrisma).prisma;
+    const prisma = (req as any).prisma;
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -85,12 +87,14 @@ export const login = async (
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    
+
+    // Define payload and options with explicit types
+    const tokenPayload: JwtPayload = { id: user.id, email: user.email };
+    const signOptions: SignOptions = { expiresIn: JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] };
+
+    // Generate JWT with properly typed variables
+    const token = jwt.sign(tokenPayload, JWT_SECRET, signOptions);
 
     res.json({
       message: 'Login successful',
@@ -117,7 +121,7 @@ export const getProfile = async (
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const prisma = (req as RequestWithPrisma).prisma;
+    const prisma = (req as any).prisma;
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: {

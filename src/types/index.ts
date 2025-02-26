@@ -1,19 +1,20 @@
 // src/types/index.ts
 
-import { User } from '@prisma/client';
+import { User, PrismaClient } from '@prisma/client';
 
 // Extend Express Request to include our custom properties
 declare global {
   namespace Express {
     interface Request {
       user?: User;
+      prisma: PrismaClient;
     }
   }
 }
 
 // Add type for extended request with prisma
 export interface RequestWithPrisma extends Request {
-  prisma: any; // Will use PrismaClient when imported
+  prisma: PrismaClient; 
 }
 
 // JWT payload interface
