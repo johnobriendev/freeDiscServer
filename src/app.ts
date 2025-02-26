@@ -27,8 +27,13 @@ app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'Golf Scorekeeping API is running' });
 });
 
-// Routes will be added here later
+// Routes 
 app.use('/api/auth', authRoutes);
+
+// Handle unhandled routes (moved before error handler to prevent error)
+app.use('*', (_req: Request, res: Response) => {
+  res.status(404).json({ message: 'Resource not found' });
+});
 
 // Error handler
 app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
@@ -36,15 +41,17 @@ app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
   
   // Handle Prisma errors
   if (err.code === 'P2002') {
-    return res.status(409).json({
+    res.status(409).json({
       message: 'A record with this information already exists'
     });
+    return;
   }
   
   if (err.code === 'P2025') {
-    return res.status(404).json({
+    res.status(404).json({
       message: 'Record not found'
     });
+    return; 
   }
   
   const statusCode = err.statusCode || 500;
@@ -53,10 +60,7 @@ app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Handle unhandled routes
-app.use('*', (_req: Request, res: Response) => {
-  res.status(404).json({ message: 'Resource not found' });
-});
+
 
 // Properly close Prisma when the app terminates
 process.on('SIGINT', async () => {
