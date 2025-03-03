@@ -84,7 +84,8 @@ export const createRound = async (
     }
 
     // Initialize scores for all players and holes
-    const scorePromises = [];
+    //const scorePromises = [];
+    const scorePromises: Promise<any>[] = [];
 
     for (const player of round.players) {
       for (const hole of round.course.holes) {
