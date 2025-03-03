@@ -1,6 +1,7 @@
 // src/controllers/courseController.ts
 
 import { Request, Response, NextFunction } from 'express';
+import '../types';
 
 export const createCourse = async (
   req: Request,

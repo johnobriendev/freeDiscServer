@@ -1,6 +1,7 @@
 // src/controllers/roundController.ts
 
 import { Request, Response, NextFunction } from 'express';
+import '../types';
 
 export const createRound = async (
   req: Request,
@@ -41,9 +42,8 @@ export const createRound = async (
               userId: ownerId
             },
             // Add named players without user accounts
-            ...playerNames.map(name => ({ name })),
-            // Add participants as players
-            ...participantIds.map(id => ({
+            ...playerNames.map((name: string) => ({ name })),
+            ...participantIds.map((id: string) => ({
               name: '', // Will be filled in the next step
               userId: id
             }))
