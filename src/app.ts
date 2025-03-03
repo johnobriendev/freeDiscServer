@@ -7,6 +7,8 @@ import { AppError } from './types';
 import authRoutes from './routes/auth';
 import courseRoutes from './routes/courses';
 import roundRoutes from './routes/rounds';
+import statsRoutes from './routes/stats';
+
 
 // Initialize Express app
 const app = express();
@@ -33,6 +35,8 @@ app.get('/', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/rounds', roundRoutes);
+app.use('/api/stats', statsRoutes);
+
 
 
 // Handle unhandled routes (moved before error handler to prevent error)
