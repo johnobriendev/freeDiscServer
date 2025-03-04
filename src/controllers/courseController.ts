@@ -251,3 +251,122 @@ export const updateHole = async (
     next(error);
   }
 };
+
+
+export const searchCourses = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { 
+      search,           // Search term for name or location
+      minHoles,         // Minimum number of holes (e.g., 9, 18)
+      maxHoles,         // Maximum number of holes
+      createdBy,        // Courses created by a specific user
+      sortBy = 'name',  // Field to sort by (name, location, holeCount, createdAt)
+      sortOrder = 'asc' // Sort direction (asc, desc)
+    } = req.query;
+
+    // Build the where clause for the query
+    const where: any = {};
+    
+    // Add search condition if provided
+    if (search) {
+      const searchStr = String(search);
+      where.OR = [
+        { name: { contains: searchStr, mode: 'insensitive' } },
+        { location: { contains: searchStr, mode: 'insensitive' } }
+      ];
+    }
+    
+    // Add hole count filter if provided
+    if (minHoles) {
+      where.holeCount = { 
+        ...where.holeCount,
+        gte: Number(minHoles) 
+      };
+    }
+    
+    if (maxHoles) {
+      where.holeCount = { 
+        ...where.holeCount,
+        lte: Number(maxHoles) 
+      };
+    }
+    
+    // Add creator filter if provided
+    if (createdBy) {
+      where.ownerId = String(createdBy);
+    }
+    
+    // Validate and set the sort field
+    let orderBy: any = {};
+    const validSortFields = ['name', 'location', 'holeCount', 'createdAt'];
+    const sortField = validSortFields.includes(String(sortBy)) 
+      ? String(sortBy) 
+      : 'name';
+    
+    // Validate and set the sort direction
+    const direction = String(sortOrder).toLowerCase() === 'desc' ? 'desc' : 'asc';
+    orderBy[sortField] = direction;
+
+    // Execute the search query
+    const courses = await req.prisma.course.findMany({
+      where,
+      include: {
+        holes: {
+          orderBy: {
+            holeNumber: 'asc'
+          }
+        },
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true
+          }
+        },
+        // Include count of rounds played on this course
+        _count: {
+          select: {
+            rounds: true
+          }
+        }
+      },
+      orderBy
+    });
+
+    // Add additional metadata to courses
+    const enhancedCourses = courses.map(course => {
+      const { _count, ...courseData } = course;
+      
+      // Calculate average par for the course
+      const totalPar = course.holes.reduce((sum, hole) => sum + hole.par, 0);
+      const averagePar = parseFloat((totalPar / course.holes.length).toFixed(1));
+      
+      // Calculate total length if available
+      let totalLength = 0;
+      const holesWithLength = course.holes.filter(hole => hole.lengthFeet !== null);
+      
+      if (holesWithLength.length > 0) {
+        totalLength = holesWithLength.reduce((sum, hole) => sum + (hole.lengthFeet || 0), 0);
+      }
+      
+      return {
+        ...courseData,
+        rounds: _count.rounds,
+        averagePar,
+        totalLength
+      };
+    });
+
+    res.json({
+      count: enhancedCourses.length,
+      courses: enhancedCourses
+    });
+  } catch (error) {
+    next(error);
+  }
+};
