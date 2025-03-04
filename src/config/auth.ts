@@ -1,6 +1,8 @@
 // src/config/auth.ts
 import { Secret } from 'jsonwebtoken';
+import config from './environment';
 
 
-export const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-jwt-secret';
-export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+export const JWT_SECRET: Secret = config.auth.jwtSecret || 'your-jwt-secret';
+export const JWT_EXPIRES_IN = config.auth.jwtExpiresIn || '7d';

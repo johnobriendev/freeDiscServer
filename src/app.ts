@@ -4,11 +4,14 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './types';
+import { errorHandler } from './utils/errorHandler';
 import authRoutes from './routes/auth';
 import courseRoutes from './routes/courses';
 import roundRoutes from './routes/rounds';
 import statsRoutes from './routes/stats';
 import userRoutes from './routes/users';
+import config, { isProduction } from './config/environment';
+
 
 
 
@@ -19,7 +22,9 @@ const app = express();
 export const prisma = new PrismaClient();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: config.cors.origin
+}));
 app.use(express.json());
 
 // Make Prisma available to all routes
@@ -49,29 +54,49 @@ app.use('*', (_req: Request, res: Response) => {
 });
 
 // Error handler
-app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err.stack);
+// app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
+//   console.error(err.stack);
   
-  // Handle Prisma errors
-  if (err.code === 'P2002') {
-    res.status(409).json({
-      message: 'A record with this information already exists'
-    });
-    return;
-  }
+//   // Handle Prisma errors
+//   if (err.code === 'P2002') {
+//     res.status(409).json({
+//       message: 'A record with this information already exists'
+//     });
+//     return;
+//   }
   
-  if (err.code === 'P2025') {
-    res.status(404).json({
-      message: 'Record not found'
-    });
-    return; 
-  }
+//   if (err.code === 'P2025') {
+//     res.status(404).json({
+//       message: 'Record not found'
+//     });
+//     return; 
+//   }
   
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    message: err.message || 'Something went wrong on the server'
+//   const statusCode = err.statusCode || 500;
+//   res.status(statusCode).json({
+//     message: err.message || 'Something went wrong on the server'
+//   });
+// });
+
+if (isProduction()) {
+  // In production, don't send detailed error information
+  app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
+    console.error(`[${new Date().toISOString()}] Error:`, err);
+    
+    if (err.statusCode) {
+      res.status(err.statusCode).json({ 
+        message: err.message || 'An error occurred' 
+      });
+    } else {
+      // Don't expose internal server errors in production
+      res.status(500).json({ message: 'An error occurred' });
+    }
   });
-});
+} else {
+  // In development, use the detailed error handler
+  app.use(errorHandler);
+}
+
 
 
 
