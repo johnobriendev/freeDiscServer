@@ -8,6 +8,8 @@ import authRoutes from './routes/auth';
 import courseRoutes from './routes/courses';
 import roundRoutes from './routes/rounds';
 import statsRoutes from './routes/stats';
+import userRoutes from './routes/users';
+
 
 
 // Initialize Express app
@@ -36,6 +38,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/rounds', roundRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/users', userRoutes);
+
 
 
 
