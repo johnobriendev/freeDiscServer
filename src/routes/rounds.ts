@@ -11,6 +11,13 @@ import {
   updateScore
 } from '../controllers/roundController';
 import { asyncHandler } from '../utils/asyncHandler';
+import { validate } from '../middleware/validate';
+import { 
+  createRoundValidator, 
+  updateScoreValidator,
+  updateRoundStatusValidator
+} from '../validators/roundValidators';
+
 
 const router = express.Router();
 
@@ -18,15 +25,16 @@ const router = express.Router();
 router.use(authenticate);
 
 // Round routes
-router.post('/', asyncHandler(createRound));
+router.post('/', validate(createRoundValidator), asyncHandler(createRound));
 router.get('/', asyncHandler(getRounds));
 router.get('/:id', asyncHandler(getRoundById));
-router.patch('/:id/status', asyncHandler(updateRoundStatus));
+router.patch('/:id/status', validate(updateRoundStatusValidator), asyncHandler(updateRoundStatus));
 
 // Player routes
 router.post('/:roundId/players', asyncHandler(addPlayerToRound));
 
 // Score routes
-router.patch('/:roundId/players/:playerId/holes/:holeId/score', asyncHandler(updateScore));
+router.patch('/:roundId/players/:playerId/holes/:holeId/score', validate(updateScoreValidator), asyncHandler(updateScore));
+
 
 export default router;

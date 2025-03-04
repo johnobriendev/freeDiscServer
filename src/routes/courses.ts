@@ -12,22 +12,30 @@ import {
   searchCourses
 } from '../controllers/courseController';
 import { asyncHandler } from '../utils/asyncHandler';
+import { validate } from '../middleware/validate';
+import { 
+  createCourseValidator, 
+  updateCourseValidator, 
+  updateHoleValidator,
+  searchCoursesValidator
+} from '../validators/courseValidators';
 
 const router = express.Router();
 
-// All routes require authentication
+// Course search doesn't require authentication
+router.get('/search', validate(searchCoursesValidator), asyncHandler(searchCourses));
+
+// All other routes require authentication
 router.use(authenticate);
 
 // Course routes
-router.post('/', asyncHandler(createCourse));
+router.post('/', validate(createCourseValidator), asyncHandler(createCourse));
 router.get('/', asyncHandler(getCourses));
 router.get('/:id', asyncHandler(getCourseById));
-router.patch('/:id', asyncHandler(updateCourse));
+router.patch('/:id', validate(updateCourseValidator), asyncHandler(updateCourse));
 router.delete('/:id', asyncHandler(deleteCourse));
-// Course search - doesn't require authentication
-router.get('/search', asyncHandler(searchCourses));
 
 // Hole routes
-router.patch('/:courseId/holes/:holeNumber', asyncHandler(updateHole));
+router.patch('/:courseId/holes/:holeNumber', validate(updateHoleValidator), asyncHandler(updateHole));
 
 export default router;
