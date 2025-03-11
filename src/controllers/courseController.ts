@@ -10,6 +10,12 @@ export const createCourse = async (
 ) => {
   try {
     const { name, location, description, holes } = req.body;
+
+    interface HoleInput {
+      holeNumber: number;
+      par?: number;
+      lengthFeet?: number | null;
+    }
     
     // Get user ID from authenticated user
     const ownerId = req.user!.id;
@@ -23,7 +29,7 @@ export const createCourse = async (
         holeCount: holes.length,
         ownerId,
         holes: {
-          create: holes.map(hole => ({
+          create: holes.map((hole: HoleInput) => ({
             holeNumber: hole.holeNumber,
             par: hole.par || 3, // Use the par value from the request
             lengthFeet: hole.lengthFeet || null
