@@ -9,7 +9,7 @@ export const createCourse = async (
   next: NextFunction
 ) => {
   try {
-    const { name, location, description, holeCount = 18 } = req.body;
+    const { name, location, description, holes } = req.body;
     
     // Get user ID from authenticated user
     const ownerId = req.user!.id;
@@ -20,13 +20,13 @@ export const createCourse = async (
         name,
         location,
         description,
-        holeCount,
+        holeCount: holes.length,
         ownerId,
         holes: {
-          create: Array.from({ length: holeCount }, (_, i) => ({
-            holeNumber: i + 1,
-            par: 3, // Default par
-            lengthFeet: req.body.holeLengths ? req.body.holeLengths[i] : null
+          create: holes.map(hole => ({
+            holeNumber: hole.holeNumber,
+            par: hole.par || 3, // Use the par value from the request
+            lengthFeet: hole.lengthFeet || null
           }))
         }
       },
