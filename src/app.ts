@@ -53,30 +53,7 @@ app.use('*', (_req: Request, res: Response) => {
   res.status(404).json({ message: 'Resource not found' });
 });
 
-// Error handler
-// app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
-//   console.error(err.stack);
-  
-//   // Handle Prisma errors
-//   if (err.code === 'P2002') {
-//     res.status(409).json({
-//       message: 'A record with this information already exists'
-//     });
-//     return;
-//   }
-  
-//   if (err.code === 'P2025') {
-//     res.status(404).json({
-//       message: 'Record not found'
-//     });
-//     return; 
-//   }
-  
-//   const statusCode = err.statusCode || 500;
-//   res.status(statusCode).json({
-//     message: err.message || 'Something went wrong on the server'
-//   });
-// });
+
 
 if (isProduction()) {
   // In production, don't send detailed error information
